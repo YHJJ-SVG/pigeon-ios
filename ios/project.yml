@@ -1,0 +1,28 @@
+name: Pigeon
+options:
+  bundleIdPrefix: top.bingtangyun
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+
+targets:
+  Pigeon:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: top.bingtangyun.pigeon.native
+        PRODUCT_NAME: Pigeon
+        PRODUCT_DISPLAY_NAME: 鸽信
+        INFOPLIST_FILE: Info.plist
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.7"
+        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+        CODE_SIGNING_ALLOWED: "NO"
+        CODE_SIGNING_REQUIRED: "NO"
+        CODE_SIGN_IDENTITY: ""
+        ENABLE_BITCODE: "NO"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
