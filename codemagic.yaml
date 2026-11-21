@@ -1,0 +1,44 @@
+workflows:
+  ios-unsigned:
+    name: Pigeon iOS unsigned IPA
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    environment:
+      xcode: latest
+      vars:
+        XCODE_SCHEME: "Pigeon"
+    scripts:
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen || brew upgrade xcodegen || true
+          xcodegen --version
+      - name: Generate Xcode project
+        script: |
+          cd ios
+          xcodegen generate
+          ls -la
+      - name: Build unsigned archive
+        script: |
+          cd ios
+          xcodebuild \
+            -project Pigeon.xcodeproj \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/Pigeon.xcarchive \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" | tail -40
+          ls -la build/Pigeon.xcarchive/Products/Applications/
+      - name: Package IPA
+        script: |
+          cd ios
+          mkdir -p build/Payload
+          cp -R build/Pigeon.xcarchive/Products/Applications/Pigeon.app build/Payload/
+          cd build
+          zip -qr Pigeon-unsigned.ipa Payload
+          ls -lh Pigeon-unsigned.ipa
+    artifacts:
+      - ios/build/Pigeon-unsigned.ipa
