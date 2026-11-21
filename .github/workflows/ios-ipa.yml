@@ -1,0 +1,57 @@
+name: build-ios-ipa
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios-ipa.yml"
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen generate
+
+      - name: Build (unsigned)
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Pigeon.xcodeproj \
+            -scheme Pigeon \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/Pigeon.xcarchive \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" 2>&1 | tail -60
+          ls -la build/Pigeon.xcarchive/Products/Applications/
+
+      - name: Package unsigned IPA
+        working-directory: ios
+        run: |
+          mkdir -p build/Payload
+          cp -R build/Pigeon.xcarchive/Products/Applications/Pigeon.app build/Payload/
+          cd build
+          zip -qr Pigeon-unsigned.ipa Payload
+          ls -lh Pigeon-unsigned.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pigeon-unsigned-ipa
+          path: ios/build/Pigeon-unsigned.ipa
+          retention-days: 30
